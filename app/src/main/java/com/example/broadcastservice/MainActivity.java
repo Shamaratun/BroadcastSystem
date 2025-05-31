@@ -24,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
 private  static  final String TAG= "MainActivity";
 public  static final String CUSTOM_BROADCAST_ACTION ="com.example.bookcrudapi.CUSTOM_ACTION";
 private BroadcastReceiver myReciver;
+    private BroadcastReceiver headsetReciver;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,6 +57,28 @@ Button stopServiceButton=findViewById(R.id.stopServiceButton);
  Log.d(TAG,"Attempting to start MyBackgroundService");
 
  });
+        headsetReciver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (Intent.ACTION_HEADSET_PLUG.equals(intent.getAction())) {
+                    int state = intent.getIntExtra("state", -1);
+                    switch (state) {
+                        case 0:
+                            Toast.makeText(context, "headphone Disconnected", Toast.LENGTH_SHORT).show();
+                            Log.d(TAG, "Headphone Disconnected");
+                            break;
+                        case 1:
+                            Toast.makeText(context, "headphone connected", Toast.LENGTH_SHORT).show();
+                            Log.d(TAG, "Headphone onnected");
+                            break;
+                        default:
+                            Log.d(TAG, "Headphone state unknown");
+                    }
+                }
+
+            }
+
+        };
     stopServiceButton.setOnClickListener(new View.OnClickListener(){
         @Override
         public void onClick(View v) {
@@ -77,11 +100,19 @@ Button stopServiceButton=findViewById(R.id.stopServiceButton);
     });
 
 }
+@Override
+protected void onResume(){
+        super.onResume();
+        IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
+        registerReceiver(headsetReciver, filter);
+        Log.d(TAG, "Headset Registered");
+}
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(myReciver);
+        unregisterReceiver(headsetReciver);
         Log.d(TAG, "Main Activity Destroyed , Broadcast unregistered.");
 
     }
